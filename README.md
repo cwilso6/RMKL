@@ -9,6 +9,7 @@ install.packages("devtools")
 library(devtools)
 devtools::install_github("cwilso6/RMKL")
 library(RMKL)
+library(caret) #for confusionMatrix
 ```
 # Requirements
 In order for RMKL to work properly, the following packages are required:

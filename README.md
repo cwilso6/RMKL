@@ -24,7 +24,7 @@ This example is meant to illustrate that each MKL implentation selects the corre
 data(benchmark.data)
 # The data sets are organized in a a list. Each entry of the list is a 100x3 matrix with each row consisting of a x- and y- coordinate, and a group label (-1,1).
 #Below is a summary of the mean of each group for each mean structure.
-lapply(1:length(benchmark.data), function(a) aggregate(x = data[[a]][,1:2], by=list(data[[a]][,3]), mean))
+lapply(1:length(benchmark.data), function(a) aggregate(x = benchmark.data[[a]][,1:2], by=list(benchmark.data[[a]][,3]), mean))
 ```
 ## Using RMKL
 ```{r}

@@ -92,7 +92,6 @@ rbf2=SEMKL.classification(k = list(K.train[[1]]),outcome = benchmark.data[[4]][t
 
 #SVM with radial hyperparameter 1/20
 rbf.05=SEMKL.classification(k=list(K.train[[2]]),outcome = benchmark.data[[4]][train.samples,3],penalty = C)
-kernels.gen(data=benchmark.data[[4]][,1:2],train.samples=train.samples,kernels=kernels,sigma=sigma,degree=degree,scale=rep(0,length(kernels)))
 domain=seq(1,8,0.1)
 grid=cbind(c(replicate(length(domain), domain)),c(t(replicate(length(domain), domain))))
 predict.data=rbind(benchmark.data[[4]][train.samples,1:2],grid)

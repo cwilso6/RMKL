@@ -5,6 +5,9 @@
 #' @param DALMKL.model DAL MKL model 
 #' @param C.DALMKL Cost used in DAMKL model
 #' @return C cost SEMKL or SimpleMKL 
+#' @references Suzuki, T. & Tomioka, R.
+#' \emph{Mach Learn} (2011) 85: 77.
+#' \href{https://doi.org/10.1007/s10994-011-5252-9}
 #' @export
 #' @examples
 #' data(benchmark.data)

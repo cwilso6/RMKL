@@ -11,6 +11,9 @@
 #' @return time total amount of time to train model
 #' @return iters Numvber of iterations to reach convergence criteria
 #' @return gamma_all Kernel weights for each interation of SEMKL
+#; @references Xu, Zenglin, Jin, Rong, Yang, Haiqin, King, Irwin, Lyu, Michael R.
+#' \emph{Proceedings of the 27th International Conference on International Conference on Machine Learning} 
+#' \href{https://cse.msu.edu/~rongjin/publications/icml2010-simple.pdf}
 #' @export
 #' @examples
 #' data(benchmark.data)

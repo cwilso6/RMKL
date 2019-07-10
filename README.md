@@ -24,11 +24,11 @@ This example is meant to illustrate that each MKL implentation selects the corre
 data(benchmark.data)
 # The data sets are organized in a a list. Each entry of the list is a 100x3 matrix with each row consisting of a x- and y- coordinate, and a group label (-1,1).
 #Below is a summary of the mean of each group for each mean structure.
-lapply(1:length(data), function(a) aggregate(x = data[[a]][,1:2], by=list(data[[a]][,3]), mean))
+lapply(1:length(benchmark.data), function(a) aggregate(x = data[[a]][,1:2], by=list(data[[a]][,3]), mean))
 ```
 ## Using RMKL
 ```{r}
- data.mkl=data[[1]]
+ data.mkl=benchmark.data[[1]]
  kernels=rep('radial',2)
  sigma=c(2,1/20)
  train.samples=sample(1:nrow(data.mkl),floor(0.7*nrow(data.mkl)),replace=FALSE)
@@ -81,16 +81,16 @@ plot(data[[4]][,-3],col=data[[4]][,3]+3,main='Benchmark Data',pch=19,xlab='X1', 
 
 #Using the radial kernel with both hyperparameter individually and then in a combined analysis
 C=100
-K=kernels.gen(data=data[[4]][,1:2],train.samples=train.samples,kernels=kernels,
+K=kernels.gen(data=benchmark.data[[4]][,1:2],train.samples=train.samples,kernels=kernels,
               sigma=sigma,degree=degree,scale=rep(0,length(kernels)))
 K.train=K$K.train
 K.test=K$K.test
 #MKL with only one candidate kernel is equivalent to SVM
 #SVM with radial hyperparameter 2
-rbf2=SEMKL.classification(k = list(K.train[[1]]),outcome = data[[4]][train.samples,3],penalty = C)
+rbf2=SEMKL.classification(k = list(K.train[[1]]),outcome = benchmark.data[[4]][train.samples,3],penalty = C)
 
 #SVM with radial hyperparameter 1/20
-rbf.05=SEMKL.classification(k=list(K.train[[2]]),outcome = data[[4]][train.samples,3],penalty = C)
+rbf.05=SEMKL.classification(k=list(K.train[[2]]),outcome = benchmark.data[[4]][train.samples,3],penalty = C)
 kernels.gen(data=data[[4]][,1:2],train.samples=train.samples,kernels=kernels,sigma=sigma,degree=degree,scale=rep(0,length(kernels)))
 domain=seq(1,8,0.1)
 grid=cbind(c(replicate(length(domain), domain)),c(t(replicate(length(domain), domain))))
@@ -99,7 +99,7 @@ kernels.predict=kernels.gen(data=predict.data,train.samples=1:length(train.sampl
             sigma=sigma,degree=degree,scale=rep(0,length(kernels)))
 
 predict2=prediction.Classification(rbf2, ktest = list(kernels.predict$K.test[[1]]),
-                          train.outcome = data[[4]][train.samples,3])$
+                          train.outcome = benchmark,data[[4]][train.samples,3])
 
 predict.05=prediction.Classification(rbf.05, ktest = list(kernels.predict$K.test[[2]]),
                                    train.outcome = data[[4]][train.samples,3])
@@ -108,18 +108,18 @@ predict.05=prediction.Classification(rbf.05, ktest = list(kernels.predict$K.test
 filled.contour(domain,domain, matrix(predict2$predict,length(domain),length(domain)),
                col = colorRampPalette(c('indianred1','lightskyblue'))(2),
                main='Classication Rule Hyperparameter=2', 
-               plot.axes={points(data[[4]][,-3],col=data[[4]][,3]+3,pch=18,cex=1.5)})
+               plot.axes={points(data[[4]][,-3],col=benchmark.data[[4]][,3]+3,pch=18,cex=1.5)})
 
 
 filled.contour(domain,domain, matrix(predict.05$predict,length(domain),length(domain)),
                col = colorRampPalette(c('indianred1','lightskyblue'))(2),
                main='Classication Rule Hyperparameter=0.05',
-               plot.axes={points(data[[4]][,-3],col=data[[4]][,3]+3,pch=18,cex=1.5)})
+               plot.axes={points(data[[4]][,-3],col=benchmark.data[[4]][,3]+3,pch=18,cex=1.5)})
 ###################################################################################################
 #Use the optimal model with the combination of kernels
 
 predict.combined=prediction.Classification(SEMKL.model[[4]], ktest = kernels.predict$K.test,
-                                   train.outcome = data[[4]][train.samples,3])
+                                   train.outcome = benchmark.data[[4]][train.samples,3])
 filled.contour(domain,domain, matrix(predict.combined$predict,length(domain),length(domain)),
                col = colorRampPalette(c('indianred1','lightskyblue'))(2),
                main='Classication Rule MKL', 

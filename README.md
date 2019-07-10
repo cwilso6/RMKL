@@ -29,7 +29,7 @@ lapply(1:length(benchmark.data), function(a) aggregate(x = benchmark.data[[a]][,
 ```
 ## Using RMKL
 ```{r}
- data.mkl=benchmark.data[[1]]
+ data.mkl=benchmark.data[[4]]
  kernels=rep('radial',2)
  sigma=c(2,1/20)
  train.samples=sample(1:nrow(data.mkl),floor(0.7*nrow(data.mkl)),replace=FALSE)
@@ -118,7 +118,7 @@ filled.contour(domain,domain, matrix(predict.05$predict,length(domain),length(do
 ###################################################################################################
 #Use the optimal model with the combination of kernels
 
-predict.combined=prediction.Classification(SEMKL.model[[4]], ktest = kernels.predict$K.test,
+predict.combined=prediction.Classification(SEMKL.model, ktest = kernels.predict$K.test,
                                    train.outcome = benchmark.data[[4]][train.samples,3])
 filled.contour(domain,domain, matrix(predict.combined$predict,length(domain),length(domain)),
                col = colorRampPalette(c('indianred1','lightskyblue'))(2),

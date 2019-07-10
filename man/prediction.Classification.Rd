@@ -42,3 +42,8 @@ predicted=prediction.Classification(SEMKL.model, K.test, example.data[training.s
 confusionMatrix(factor(predicted$predict, levels=c(-1,1)),
                 factor(example.data[-training.samples,3],levels=c(-1,1)))
 }
+\references{
+A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet.
+\emph{Journal of Machine Learning Research} 9 (Nov), 2491-2521.
+\href{http://www.jmlr.org/papers/v9/rakotomamonjy08a.html}
+}

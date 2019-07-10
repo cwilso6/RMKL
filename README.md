@@ -64,7 +64,7 @@ lapply(1:length(benchmark.data), function(a) aggregate(x = benchmark.data[[a]][,
   cm.DALMKL.logi
  
   #Convert C parameter from DALMKL implenetation to SimpleMKL and SEMKL implementation to make the four implementations comparible.
-  C_SEMKL=C.convert(K.train,spicy_logib1n$model,C)
+  C_SEMKL=C.convert(K.train,spicy_logib1n,C)
   
   #Implement SimpleMKL
   SimpleMKL.model=SimpleMKL.classification(k=K.train,data.mkl[train.samples,3], penalty=C_SEMKL)

@@ -51,14 +51,14 @@ lapply(1:length(benchmark.data), function(a) aggregate(x = benchmark.data[[a]][,
   k.test=simplify2array(K.test)
   
   #Implement DALMKL with the hinge loss function
-  spicy_svmb1n=SpicySVM(k.train, ytr, C, cri_outer, cri_inner, max_iter_outer, max_iter_inner, calpha)
-  spicysvmb1n_results=predictspicy(spicy_svmb1n$alpha,spicy_svmb1n$b, k = k.test)
+  spicy_svmb1n=SpicyMKL(k.train, ytr, 'hinge',C, cri_outer, cri_inner, max_iter_outer, max_iter_inner, calpha)
+  spicysvmb1n_results=predict_Spicy(spicy_svmb1n$alpha,spicy_svmb1n$b, k = k.test)
   cm.DALMKL.svm=confusionMatrix(factor(sign(spicysvmb1n_results),levels=c(-1,1)), factor(data.mkl[-train.samples,3],levels=c(-1,1)))
   cm.DALMKL.svm
   
   #Implement DALMKL with a logistic loss function
-  spicy_logib1n=SpicyLogit(k.train, ytr, C, cri_outer, cri_inner, max_iter_outer, max_iter_inner, calpha)
-  spicylogib1n_results=predictspicy(spicy_logib1n$alpha,spicy_logib1n$b, k = k.test)
+  spicy_logib1n=SpicyMKL(k.train, ytr,'logistic' ,C, cri_outer, cri_inner, max_iter_outer, max_iter_inner, calpha)
+  spicylogib1n_results=predict_Spicy(spicy_logib1n$alpha,spicy_logib1n$b, k = k.test)
   cm.DALMKL.logi=confusionMatrix(factor(sign(spicylogib1n_results),levels=c(-1,1)), factor(data.mkl[-train.samples,3],levels=c(-1,1)))
   cm.DALMKL.logi
  

@@ -27,7 +27,7 @@ data(benchmark.data)
 #Below is a summary of the mean of each group for each mean structure.
 lapply(1:length(benchmark.data), function(a) aggregate(x = benchmark.data[[a]][,1:2], by=list(benchmark.data[[a]][,3]), mean))
 ```
-## Using RMKL
+## Using RMKL with benchmark data
 ```{r}
  data.mkl=benchmark.data[[4]]
  kernels=rep('radial',2)
@@ -129,12 +129,77 @@ Realizations that fall in the light blue region will be classified as 1, while t
 
 
 
-# TCGA small example
+## TCGA small example
 
-These date are described in man/tcga.small.Rd.
+These date are described in man/tcga.small.Rd, these data are log2(miRNA expression value+1).
 
 ```{r}
+rm(list=ls())
+library(RMKL)
+library(kernlab)
+library(caret)
 
+data(tcga.small)
+
+normalized=apply(tcga.small,2,function(a) a/sqrt(sum(a^2)))
+
+
+kernels=c('linear', rep('radial',8))
+sigma=c(0,10^(-5:2))
+training.samples=sample(1:nrow(normalized), 200, replace=FALSE)
+K=kernels.gen(data=normalized[,-ncol(normalized)], sigma=sigma, degree=0, scale=0,kernels=kernels,
+              train.samples=training.samples)
+
+
+K.train=K$K.train
+K.test=K$K.test
+K.train.dal=simplify2array(K.train)
+K.test.dal=simplify2array(K.test)
+
+
+outcome=tcga.small[,ncol(tcga.small)]
+y.train=outcome[training.samples]
+cri_out = .01
+cri_in = .000001
+maxiter_out = maxiter_in = 500
+C = 0.5*10^c(-2:0)
+calpha = 10
+
+mod.hinge=lapply(C, function(a){
+mod.hinge = SpicyMKL(K.train.dal, y.train,'hinge' , a , cri_out, cri_in, 
+                     maxiter_out, maxiter_in, calpha)
+prediction.hinge = predict_Spicy(mod.hinge$alpha,mod.hinge$b, K.test.dal)
+cm=confusionMatrix(factor(sign(prediction.hinge),levels=c(-1,1)),
+                   factor(outcome[-training.samples],levels=c(-1,1)))
+return(list(model=mod.hinge,cm=cm))
+})
+
+
+mod.logistic=lapply(C, function(a){
+  mod.logistic = SpicyMKL(K.train.dal, y.train,'logistic' , a , cri_out, cri_in, 
+                       maxiter_out, maxiter_in, calpha)
+  prediction.logistic = predict_Spicy(mod.logistic$alpha,mod.logistic$b, K.test.dal)
+  cm=confusionMatrix(factor(sign(prediction.logistic),levels=c(-1,1)),
+                     factor(outcome[-training.samples],levels=c(-1,1)))
+  return(list(model=mod.logistic,cm=cm))
+})
+
+C.SEMKL.logisic=sapply(1:length(mod.logistic), function(b) C.convert(K.train, mod.logistic[[b]]$model,C[b]))
+
+C.SEMKL.hinge=sapply(1:length(mod.hinge), function(b) C.convert(K.train, mod.hinge[[b]]$model,C[b]))
+
+SimpleMKL.results=lapply(C.SEMKL.hinge, function(b){
+  SimpleMKL=SimpleMKL.classification(k=K.train, outcome=as.numeric(as.character(outcome[training.samples])), penalty=b, tol = 10^(-4), max.iters = 1000)
+  cm.SimpleMKL=confusionMatrix(factor(prediction.Classification(SimpleMKL,ktest=K.test,as.numeric(as.character(outcome[training.samples])))$predict,levels=c(-1,1)),
+                               factor(outcome[-training.samples]))
+  return(list(cm=cm.SimpleMKL,model=SimpleMKL))})
+
+
+SEMKL.results=lapply(C.SEMKL.hinge, function(b){
+  SEMKL=SEMKL.classification(k=K.train, outcome=as.numeric(as.character(outcome[training.samples])), penalty=b, tol = 10^(-4), max.iters = 1000)
+  cm.SEMKL=confusionMatrix(factor(prediction.Classification(SEMKL,ktest=K.test,as.numeric(as.character(outcome[training.samples])))$predict,levels=c(-1,1)),
+                               factor(outcome[-training.samples]))
+  return(list(cm=cm.SEMKL,model=SEMKL))})
 
 ```
 

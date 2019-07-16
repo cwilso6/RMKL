@@ -127,3 +127,14 @@ filled.contour(domain,domain, matrix(predict.combined$predict,length(domain),len
 ```
 Realizations that fall in the light blue region will be classified as 1, while the points that fall in the light red region will be classified as -1. The points are the original observations. Notice that the two groups do overlap, and that a radial kernel with a large hyperparameter is able to classify in areas with overlap, while a radial kernel with a small hyperparameter can not. The kernel wieghts for this example are 0.9997 for a radial kernel 2 as a hyperparameter, and 0.0002 for radial kernel with 1/20 as a hyper parameter. 
 
+
+
+# TCGA small example
+
+These date are described in man/tcga.small.Rd.
+
+```{r}
+
+
+```
+

@@ -12,7 +12,7 @@
 #' @return results Returns a list which includes model parameters, weights for kernels, and 
 #' f which are the fitted values for the training set
 #' @export
-#' @example 
+#' @examples 
 #' \donotrun{
 #' library(kernlab)
 #' x=as.matrix(10*runif(200),ncol=1)

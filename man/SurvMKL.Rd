@@ -29,3 +29,13 @@ alpha coeffiencents of the dual of SurvMKL
 \description{
 This function conducts SurvMKL for precomputed gramm matrices
 }
+\examples{
+library(RMKL)
+library(kernlab)
+data(Surv_data)
+rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
+klist <- list(kernelMatrix(rbfdot(2), as.matrix(Surv_data[,1:2])),
+	         kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+kk <- simplify2array(klist)
+modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  rho0, C = .5, lambda = .5, maxiter = 500, cri = .01)
+}

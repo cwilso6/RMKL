@@ -13,9 +13,19 @@
 #' @useDynLib RMKL, .registration=TRUE
 #' @importFrom Rcpp evalCpp 
 #' @export
-SurvMKL <- function(K, y, del, rho0,C = .5, lambda = .5, maxiter = 500, cri = 0.01) {
-    Coxdual(y0 = y, delta0 = del, k0 = K, rho0 = rho0, cc = C, lambda = lambda, 500, cri = cri)
-}
+#' @examples
+#' library(RMKL)
+#' library(kernlab)
+#' data(Surv_data)
+#' rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
+#' klist <- list(kernelMatrix(rbfdot(2), as.matrix(Surv_data[,1:2])),
+#' 	         kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+#' kk <- simplify2array(klist)
+#' modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  rho0, C = .5, lambda = .5, maxiter = 500, cri = .01)
+
+SurvMKL <- function(K, y, del, rho0,C = .5, lambda = .5, maxiter = 500, cri =  0.01) {
+     Coxdual(y0 = y, delta0 = del, k0 = K, rho0 = rho0, cc = C, lambda = lambda, 500, cri = cri)
+ }
 
 
 
@@ -28,6 +38,16 @@ SurvMKL <- function(K, y, del, rho0,C = .5, lambda = .5, maxiter = 500, cri = 0.
 #' @useDynLib RMKL
 #' @importFrom Rcpp evalCpp
 #' @export
+#' @examples
+#' library(RMKL)
+#' library(kernlab)
+#' data(Surv_data)
+#' rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
+#' klist <- list(kernelMatrix(rbfdot(2), as.matrix(Surv_data[,1:2])),
+#'  	        kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+#' kk <- simplify2array(klist)
+#' modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho = rho0, C = .005, lambda = .5, maxiter = 500, cri = .01)
+#' predict_Surv(modmkl, kk)
 
 
 predict_Surv <- function(alpha, k0) {

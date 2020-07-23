@@ -1,0 +1,83 @@
+---
+title: "MKL Cox (MKCox)"
+output: pdf_document
+---
+
+We will be mimicing example 1, two factors with linear relatophsip with the hazard
+function $h(X) = (X_1 + 2*X_2)$, from 'Fenchel duality of Cox partial 
+likelihood and its application in survival kernel learning' Wilson et. al (2020).
+
+## Loading data and plotting data
+```{r}
+library(RMKL)
+library(ggplot2)
+library(survival)
+library(gbm)
+library(randomForestSRC)
+library(kernlab)
+data(Surv_data)
+head(Surv_data)
+```
+
+```{r}
+ggplot(Surv_data, aes(x = x1, y = x2, color = time)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + 
+labs(color = 'value', title = 'True',x = expression(x[1]), y = expression(x[2])) + theme_bw() + theme(plot.title = element_text(hjust = .5), legend.position = 'right')
+print
+```
+
+
+
+#Cox model
+```{r}
+fit=coxph(Surv(Surv_data$time, Surv_data$status) ~ Surv_data$x1 + Surv_data$x2, method = "breslow")
+fit2 <- step(fit, direction='both', k = log(dim(Surv_data)[1]))
+cox_pred=predict(fit, as.data.frame(Surv_data[,1:2]))
+summary(fit)$concordance[1]
+Surv_data$Cox = cox_pred
+ggplot(Surv_data, aes(x = x1, y = x2, color = Cox)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'Cox') + theme_bw() + theme(plot.title = element_text(hjust = .5), legend.position = 'right')
+```
+
+#Gradient Boosting 
+```{r}
+gbm1 <- gbm(Surv(time, status) ~ x1 + x2,       # formula
+              data=Surv_data,                 # dataset
+              distribution="coxph",
+              n.trees=1000,              # number of trees
+              shrinkage=0.005,           # shrinkage or learning rate, 0.001 to 0.1 usually work
+              interaction.depth=1,       # 1: additive model, 2: two-way interactions, etc
+              bag.fraction = 0.5,        # subsampling fraction, 0.5 is probably best
+              train.fraction = 0.8,      # fraction of data for training, first train.fraction*N used for training
+              cv.folds = 5,              # do 5-fold cross-validation
+              verbose = F)           #  print progress
+summary(gbm1)
+best.iter <- gbm.perf(gbm1,method = "cv")
+gpred2=predict(gbm1,Surv_data,best.iter)
+Surv_data$GBM = gpred2
+ggplot(Surv_data, aes(x = x1, y = x2, color = GBM)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'GBCox') + theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), legend.position = 'bottom')
+gbm.con = survConcordance(Surv(time, status) ~ GBM, Surv_data)$con
+gbm.con
+```
+
+#Random Survival Forest
+```{r}
+modrf <-  rfsrc(Surv(time, status) ~ x1 + x2, data = Surv_data, nsplit = 10)
+prerf <- predict(modrf, Surv_data, outcome = 'test')$predicted.oob
+Surv_data$RSF = prerf
+ggplot(Surv_data, aes(x = x1, y = x2, color = RSF)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'RSF') + theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), legend.position = 'bottom')
+RSF.con = survConcordance(Surv(time, status) ~ RSF, Surv_data)$con
+RSF.con
+```
+
+#MKCox
+```{R}
+rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
+klist <- list(kernelMatrix(rbfdot(1), as.matrix(Surv_data[,1:2])),
+	         kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+kk <- simplify2array(klist)
+modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  rho0, C = 0.005, lambda = 0.5, maxiter = 500, cri = .01)
+mkl = predict_Surv(modmkl, kk)
+Surv_data$MKCox = mkl
+ggplot(Surv_data, aes(x = x1, y = x2, color = MKCox)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'MKCox') + theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), legend.position = 'bottom')
+MKCox.con = survConcordance(Surv(time, status) ~ MKCox, Surv_data)$con
+MKCox.con
+```

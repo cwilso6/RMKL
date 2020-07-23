@@ -8,7 +8,7 @@
 #' @return yhat Predicted value for each test point
 #' @return predicted Sign of yhat, which is the final predicted outcome 
 #' @export
-#' @example 
+#' @examples 
 #' \donotrun{
 #' library(kernlab)
 #' x=as.matrix(10*runif(200),ncol=1)

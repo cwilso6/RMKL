@@ -21,3 +21,19 @@ predicted Sign of yhat, which is the final predicted outcome
 \description{
 This makes prediction for multiple kernel regression
 }
+\examples{
+\donotrun{
+library(kernlab)
+x=as.matrix(10*runif(200),ncol=1)
+y=x*sin(x)+rnorm(200)
+plot(x,y)
+
+
+model=SEMKL.regression(k=K$K.train, outcome = y[1:150], epsilon = 0.01, penalty=100)
+pred=prediction.Regression(model=model, ktest=K$K.test,outcome=y)
+plot(y[151:200],pred)
+abline(a=0,b=1)
+plot(x[151:200],y[151:200])
+points(x[151:200],pred,col='red')
+}
+}

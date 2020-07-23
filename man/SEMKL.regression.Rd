@@ -27,3 +27,14 @@ f which are the fitted values for the training set
 \description{
 This makes prediction for multiple kernel regression
 }
+\examples{
+\donotrun{
+library(kernlab)
+x=as.matrix(10*runif(200),ncol=1)
+y=x*sin(x)+rnorm(200)
+plot(x,y)
+
+
+model=SEMKL.regression(k=K$K.train, outcome = y[1:150], epsilon = 0.25, penalty=100)
+}
+}

@@ -4,8 +4,7 @@
 \alias{SimpleMKL.classification}
 \title{Simple MKL}
 \usage{
-SimpleMKL.classification(k, outcome, penalty, tol = 10^(-4),
-  max.iters = 1000)
+SimpleMKL.classification(k, outcome, penalty, tol = 10^(-4), max.iters = 1000)
 }
 \arguments{
 \item{k}{list of Gramm matrices}

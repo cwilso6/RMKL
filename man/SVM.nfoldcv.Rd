@@ -4,8 +4,17 @@
 \alias{SVM.nfoldcv}
 \title{Cross validation for SVM}
 \usage{
-SVM.nfoldcv(data, outcome, train.samples, C, kernels, degree, scale, sigma,
-  nfold = 10)
+SVM.nfoldcv(
+  data,
+  outcome,
+  train.samples,
+  C,
+  kernels,
+  degree,
+  scale,
+  sigma,
+  nfold = 10
+)
 }
 \arguments{
 \item{data}{List of data matrices for each pathways for each pathway}

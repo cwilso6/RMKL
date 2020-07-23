@@ -4,9 +4,17 @@
 \alias{SpicyMKL}
 \title{DALMKL}
 \usage{
-SpicyMKL(K, y, loss = "hinge", C = 0.5, tolOuter = 0.01,
-  tolInner = 1e-06, OuterMaxiter = 500, InnerMaxiter = 500,
-  calpha = 10)
+SpicyMKL(
+  K,
+  y,
+  loss = "hinge",
+  C = 0.5,
+  tolOuter = 0.01,
+  tolInner = 1e-06,
+  OuterMaxiter = 500,
+  InnerMaxiter = 500,
+  calpha = 10
+)
 }
 \arguments{
 \item{K}{The multiple kernel cube (3-d array)}

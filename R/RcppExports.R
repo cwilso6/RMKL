@@ -13,3 +13,11 @@ predictspicy <- function(alpha, b, k0) {
     .Call(`_RMKL_predictspicy`, alpha, b, k0)
 }
 
+Coxdual <- function(y0, delta0, k0, rho0, cc, lambda, maxiter, cri) {
+    .Call(`_RMKL_Coxdual`, y0, delta0, k0, rho0, cc, lambda, maxiter, cri)
+}
+
+predictsurv <- function(alpha, k0) {
+    .Call(`_RMKL_predictsurv`, alpha, k0)
+}
+

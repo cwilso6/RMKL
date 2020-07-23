@@ -22,6 +22,6 @@ LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
 LazyLoad: yes
 Encoding: UTF-8
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 NeedsCompilation: yes
 Packaged: 2019-04-24 14:53:19 UTC; 4468179

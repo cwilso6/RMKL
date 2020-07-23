@@ -4,8 +4,7 @@
 \alias{SEMKL.regression}
 \title{Prediction from MKL model}
 \usage{
-SEMKL.regression(k, outcome, penalty, epsilon, tol = 1e-04,
-  max.iters = 1000)
+SEMKL.regression(k, outcome, penalty, epsilon, tol = 1e-04, max.iters = 1000)
 }
 \arguments{
 \item{k}{Gramm matrix of training data}

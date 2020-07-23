@@ -724,3 +724,499 @@ arma::vec predictspicy(arma::mat alpha, double b, arma::cube k0) {
 	}
 	return yy;
 }
+
+
+//[[Rcpp::depends(RcppArmadillo)]]
+double clambda1, clambda, lamlam1;
+int n, m;
+arma::cube k;
+uvec actset, yrisk;
+arma::vec delta, rho, y;
+
+double knorm(arma::vec v, arma::mat k_slice_m) {
+	return sqrt(dot(k_slice_m*v, v));
+}
+
+double dg(double yy) {
+	return (yy - clambda1) / clambda / yy;
+}
+
+arma::vec invcumsum(int nn, arma::vec x) {
+	arma::vec cx(nn);
+	double init = 0;
+	vec::iterator x_begin = x.begin(), x_end = x.end(), cx_end = cx.end();
+	while (x_end != x_begin) {
+		init += *(--x_end);
+		*(--cx_end) = init;
+	}
+	return cx;
+}
+
+
+inline int tsign(double ti, int ci, double tj, int cj) {
+	if (ti > tj) {
+		return cj;
+	}
+	else if (ti < tj) {
+		return -ci;
+	}
+	else {
+		return cj - ci;
+	}
+}
+
+inline int getsign(double x) {
+	if (x > 0) {
+		return 1;
+	}
+	else if (x < 0) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+
+double pl(int n, arma::vec score, arma::vec del) {
+	double mi, mi1;
+	arma::vec escore = exp(score), yscr = log(invcumsum(n, escore));
+	if (!is_finite(yscr)) {
+		uvec nonfiidx = find_nonfinite(yscr);
+		bool pos = any(yscr(nonfiidx) > 0), neg = any(yscr(nonfiidx) < 0);
+		unsigned np;
+		arma::vec subscore, subscore2;
+		if (pos) {
+			np = sum(yscr(nonfiidx) > 0);
+			mi = max(score);
+			subscore = score - mi;
+			yscr(0) = mi + log(sum(exp(subscore)));
+			if (np > 1) {
+				for (unsigned i = 1; i < np; ++i) {
+					mi1 = max(score.tail(n - i));
+					subscore += mi - mi1;
+					mi = mi1;
+					yscr(i) = mi + log(sum(exp(subscore.tail(n - i))));
+				}
+			}
+		}
+		if (neg) {
+			np = sum(yscr(nonfiidx) < 0);
+			mi = min(score.tail(np));
+			subscore = score.tail(np) - mi;
+			yscr(n - np) = mi + log(sum(exp(subscore)));
+			if (np > 1) {
+				for (unsigned i = n - np + 1; i < (unsigned)n; i++) {
+					mi1 = min(score.tail(n - i));
+					subscore += mi - mi1;
+					mi = mi1;
+					yscr(i) = mi + log(sum(exp(subscore.tail(n - i))));
+				}
+			}
+		}
+	}
+	return dot(del, score - yscr);
+}
+
+double cidx(int n, arma::vec score, arma::vec& time, arma::vec& del) {
+	int up = 0, down = 0, sct;
+	vec::iterator t1 = time.begin() + 1, te = time.end(), d1 = del.begin() + 1, s1 = score.begin() + 1, t2, d2, s2;
+	while (t1 != te) {
+		t2 = time.begin();
+		d2 = del.begin();
+		s2 = score.begin();
+		while (t2 != t1) {
+			sct = tsign(*t1, *d1, *t2++, *d2++);
+			up += sct*getsign(*s2++ - *s1);
+			down += fabs(sct);
+		}
+		++t1;
+		++d1;
+		++s1;
+	}
+	return .5*((double)up / down + 1);
+}
+
+arma::vec graCox() {
+	arma::vec ggrho, rhoc0, rhoc, delrhoc, rhocsum, delrhocsum;
+	double rhok;
+	rhoc0 = -invcumsum(n - 1, rho.tail(n - 1));
+	rhoc = log(rhoc0);
+	delrhoc = log(delta.tail(n - 1) + rhoc0);
+	rhocsum = invcumsum(n - 1, rhoc);
+	delrhocsum = invcumsum(n - 1, delrhoc);
+	rhocsum.insert_rows(n - 1, zeros<vec>(1));
+	delrhocsum.insert_rows(n - 1, zeros<vec>(1));
+	ggrho = rhocsum - delrhocsum - log(delta - rho) + 1e5*sum(rho)*ones(n);
+	for (int i = 0; i < m; i++) {
+		if (actset(i)) {
+			rhok = knorm(rho, k.slice(i));
+			if (rhok > clambda1) {
+				ggrho += dg(rhok)*k.slice(i)*rho;
+			}
+			else {
+				actset(i) = 0;
+			}
+		}
+	}
+	return ggrho;
+}
+
+arma::mat hesCox() {
+	arma::mat hesrr = diagmat(1 / (delta - rho)) + 1e5*ones(n, n);
+	double rhok;
+	for (int i = 0; i < m; i++) {
+		if (actset(i)) {
+			rhok = knorm(rho, k.slice(i));
+			hesrr += (rhok - clambda1) / clambda / rhok*k.slice(i) + lamlam1 * pow(rhok, -3)*k.slice(i)*rho*trans(rho)*k.slice(i);
+		}
+	}
+	return hesrr + eye(n, n)*1e-8;
+}
+
+
+
+
+//[[Rcpp::export]]
+arma::mat Coxdual(arma::vec y0, arma::vec delta0, arma::cube k0, arma::vec rho0, double cc, double lambda, int maxiter, double cri) {
+	k = k0;
+	rho = rho0;
+	n = delta0.n_elem;
+	m = k.n_slices;
+	delta = delta0;
+	clambda = cc*lambda;
+	clambda1 = cc*(1 - lambda);
+	lamlam1 = clambda1 / clambda;
+	actset = ones<uvec>(m);
+	y = y0;
+	int i;
+	double rhok, st = 1, s1, s2;
+	arma::vec g, rhonew, hg, arhonew, ahg(n - 1), arho(n - 1);
+	arma::mat h, alpha = zeros(n, m);
+	uvec yxd0, rdd0;
+	for (i = 0; i < maxiter; i++) {
+		g = graCox();
+		h = hesCox();
+		hg = -solve(h, g);
+		rhonew = rho + hg;
+		ahg = invcumsum(n - 1, hg.tail(n - 1));
+		arho = invcumsum(n - 1, rho.tail(n - 1));
+		arhonew = arho + ahg;
+		if (any(arhonew >= 0) || any(rhonew >= delta)) {
+			yxd0 = find(ahg > 0);
+			rdd0 = find(hg > 0);
+			s1 = yxd0.n_elem > 0 ? (min(-arho(yxd0) / ahg(yxd0))*.999) : 1;
+			s2 = rdd0.n_elem > 0 ? (min((delta(rdd0) - rho(rdd0)) / hg(rdd0))*.999) : 1;
+			st = s1 > s2 ? s2 : s1;
+		}
+		rhonew = rho + st*hg;
+		if (all(actset == 0) || (norm(rho - rhonew) / norm(rho) < cri)) {
+			break;
+		}
+		rho = rhonew;
+		st = 1;
+	}
+	if (i == maxiter) {
+		printf("Does not converge!");
+	}
+	for (i = 0; i < m; i++) {
+		if (actset(i)) {
+			rhok = knorm(rho, k.slice(i));
+			alpha.col(i) = dg(rhok)*rho;
+		}
+	}
+	return alpha;
+}
+
+//[[Rcpp::export]]
+arma::vec predictsurv(arma::mat alpha, arma::cube k0) {
+	int mm = k0.n_cols, pp = k0.n_slices;
+	arma::vec yy = zeros(mm);
+	for (int i = 0; i < pp; i++) {
+		yy += k0.slice(i).t()*alpha.col(i);
+	}
+	return yy;
+}
+
+
+
+
+arma::mat kercom(arma::cube xx, arma::vec weight) {
+	int m = xx.n_slices, n = xx.n_rows;
+	arma::mat res = zeros(n, n);
+	for (int i = 0; i < m; i++) {
+		res += weight(i)*xx.slice(i);
+	}
+	return res;
+}
+
+
+arma::cube mixkercd(arma::mat xc, arma::mat xd) {
+	int n = xc.n_rows, dc = xc.n_cols;
+	rowvec mm = max(xc) - min(xc);
+	arma::cube kc(n, n, 5);
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 0) = exp(-norm(xc.row(i) - xc.row(j)) / dc);
+			kc(i, j, 0) += sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 0) = kc(i, j, 0);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 1) = exp(-pow(norm(xc.row(i) - xc.row(j)), 2) / dc);
+			kc(i, j, 1) += sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 1) = kc(i, j, 1);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 2) = dc - sum(abs(xc.row(i) - xc.row(j)) / mm);
+			kc(i, j, 2) += sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 2) = kc(i, j, 2);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 3) = dot(xc.row(i), xc.row(j));
+			kc(i, j, 3) += sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 3) = kc(i, j, 3);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 4) = pow(dot(xc.row(i), xc.row(j)) / dc, 3);
+			kc(i, j, 4) += sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 4) = kc(i, j, 4);
+			}
+		}
+	}
+	return kc;
+}
+
+
+
+arma::cube mixkertestcd(arma::mat trc, arma::mat trd, arma::mat tec, arma::mat ted) {
+	int ntr = trc.n_rows, nte = tec.n_rows, dc = trc.n_cols;
+	rowvec mm = max(trc) - min(trc);
+	arma::cube kc(ntr, nte, 5);
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 0) = exp(-norm(trc.row(i) - tec.row(j)) / dc);
+			kc(i, j, 0) += sum(trd.row(i) == ted.row(j));
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 1) = exp(-pow(norm(trc.row(i) - tec.row(j)), 2) / dc);
+			kc(i, j, 1) += sum(trd.row(i) == ted.row(j));
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 2) = dc - sum(abs(trc.row(i) - tec.row(j)) / mm);
+			kc(i, j, 2) += sum(trd.row(i) == ted.row(j));
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 3) = dot(trc.row(i), tec.row(j));
+			kc(i, j, 3) += sum(trd.row(i) == ted.row(j));
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 4) = pow(dot(trc.row(i), tec.row(j)) / dc, 3);
+			kc(i, j, 4) += sum(trd.row(i) == ted.row(j));
+		}
+	}
+	return kc;
+}
+
+
+arma::cube mixkerc(arma::mat xc) {
+	int n = xc.n_rows, dc = xc.n_cols;
+	rowvec mm = max(xc) - min(xc);
+	arma::cube kc(n, n, 5);
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 0) = exp(-norm(xc.row(i) - xc.row(j)) / dc);
+			if (j > i) {
+				kc(j, i, 0) = kc(i, j, 0);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 1) = exp(-pow(norm(xc.row(i) - xc.row(j)), 2) / dc);
+			if (j > i) {
+				kc(j, i, 1) = kc(i, j, 1);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 2) = dc - sum(abs(xc.row(i) - xc.row(j)) / mm);
+			if (j > i) {
+				kc(j, i, 2) = kc(i, j, 2);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 3) = dot(xc.row(i), xc.row(j));
+			if (j > i) {
+				kc(j, i, 3) = kc(i, j, 3);
+			}
+		}
+	}
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 4) = pow(dot(xc.row(i), xc.row(j)) / dc, 3);
+			if (j > i) {
+				kc(j, i, 4) = kc(i, j, 4);
+			}
+		}
+	}
+	return kc;
+}
+
+
+
+arma::cube mixkertestc(arma::mat trc, arma::mat tec) {
+	int ntr = trc.n_rows, nte = tec.n_rows, dc = trc.n_cols;
+	rowvec mm = max(trc) - min(trc);
+	arma::cube kc(ntr, nte, 5);
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 0) = exp(-norm(trc.row(i) - tec.row(j)) / dc);
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 1) = exp(-pow(norm(trc.row(i) - tec.row(j)), 2) / dc);
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 2) = dc - sum(abs(trc.row(i) - tec.row(j)) / mm);
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 3) = dot(trc.row(i), tec.row(j));
+		}
+	}
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 4) = pow(dot(trc.row(i), tec.row(j)) / dc, 3);
+		}
+	}
+	return kc;
+}
+
+
+arma::cube mixkerd(arma::mat xd) {
+	int n = xd.n_rows;
+	arma::cube kc(n, n, 1);
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			kc(i, j, 0) = sum(xd.row(i) == xd.row(j));
+			if (j > i) {
+				kc(j, i, 0) = kc(i, j, 0);
+			}
+		}
+	}
+	return kc;
+}
+
+
+arma::cube mixkertestd(arma::mat trd, arma::mat ted) {
+	int ntr = trd.n_rows, nte = ted.n_rows;
+	arma::cube kc(ntr, nte, 1);
+	for (int i = 0; i < ntr; i++) {
+		for (int j = 0; j < nte; j++) {
+			kc(i, j, 0) = sum(trd.row(i) == ted.row(j));
+		}
+	}
+	return kc;
+}
+
+
+
+
+arma::cube cvcoxmkl(const arma::vec& yy, const arma::mat& xx, const arma::vec& del, vec ccsearch, arma::vec lamsearch, const uvec& incd, const uvec& cvwhich, int nf, int maxiter, double cri, bool meas) {
+	int ncc = ccsearch.n_elem, nll = lamsearch.n_elem, ntr, nva = 0, nfull = yy.n_elem;
+	arma::vec yytr, rho0, ytr, yva, scoreva, ddeltr, deltr, delva;
+	arma::mat xxtr, xtr, xva, modelre;
+	uvec trind, vaind, indic = find(incd == 1), incon = find(incd == 0), yf1, yz1, ycom, trsrt;
+	arma::cube ktr, kva, kfull, cvppl(ncc, nll, nf);
+	for (int i = 0; i < nf; i++) {
+		trind = find(cvwhich != i);
+		ntr = trind.n_elem;
+		xxtr = xx.rows(trind);
+		yytr = yy.elem(trind);
+		ddeltr = del.elem(trind);
+		trsrt = sort_index(yytr);
+		xtr = xxtr.rows(trsrt);
+		ytr = sort(yytr);
+		deltr = ddeltr.elem(trsrt);
+		rho0 = .001*(deltr - linspace(0, 10, ntr));
+		arma::mat yortr(ntr, ntr);
+		if (meas == 0) {
+			if (indic.n_elem == 0) {
+				ktr = mixkerc(xtr);
+				kfull = mixkertestc(xtr, xx);
+			}
+			else if (incon.n_elem == 0) {
+				ktr = mixkerd(xtr);
+				kfull = mixkertestd(xtr, xx);
+			}
+			else {
+				ktr = mixkercd(xtr.cols(incon), xtr.cols(indic));
+				kfull = mixkertestcd(xtr.cols(incon), xtr.cols(indic), xx.cols(incon), xx.cols(indic));
+			}
+		}
+		else {
+			vaind = find(cvwhich == i);
+			nva = vaind.n_elem;
+			xva = xx.rows(vaind);
+			yva = yy.elem(vaind);
+			delva = del.elem(vaind);
+			if (indic.n_elem == 0) {
+				ktr = mixkerc(xtr);
+				kva = mixkertestc(xtr, xva);
+			}
+			else if (incon.n_elem == 0) {
+				ktr = mixkerd(xtr);
+				kva = mixkertestd(xtr, xva);
+			}
+			else {
+				ktr = mixkercd(xtr.cols(incon), xtr.cols(indic));
+				kva = mixkertestcd(xtr.cols(incon), xtr.cols(indic), xva.cols(incon), xva.cols(indic));
+			}
+		}
+		for (int j = 0; j < ncc; j++) {
+			for (int h = 0; h < nll; h++) {
+				modelre = Coxdual(ytr, deltr, ktr, rho0, ccsearch(j), lamsearch(h), maxiter, cri);
+				if (meas) {
+					cvppl(j, h, i) = pl(nfull, predictsurv(modelre, kfull), del) - pl(ntr, predictsurv(modelre, ktr), deltr);
+				}
+				else {
+					scoreva = -predictsurv(modelre, kva);
+					cvppl(j, h, i) = cidx(nva, predictsurv(modelre, kva), yva, delva);
+				}
+			}
+		}
+	}
+	return cvppl;
+}
+

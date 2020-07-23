@@ -55,11 +55,43 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Coxdual
+arma::mat Coxdual(arma::vec y0, arma::vec delta0, arma::cube k0, arma::vec rho0, double cc, double lambda, int maxiter, double cri);
+RcppExport SEXP _RMKL_Coxdual(SEXP y0SEXP, SEXP delta0SEXP, SEXP k0SEXP, SEXP rho0SEXP, SEXP ccSEXP, SEXP lambdaSEXP, SEXP maxiterSEXP, SEXP criSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type y0(y0SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta0(delta0SEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type k0(k0SEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type rho0(rho0SEXP);
+    Rcpp::traits::input_parameter< double >::type cc(ccSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    Rcpp::traits::input_parameter< double >::type cri(criSEXP);
+    rcpp_result_gen = Rcpp::wrap(Coxdual(y0, delta0, k0, rho0, cc, lambda, maxiter, cri));
+    return rcpp_result_gen;
+END_RCPP
+}
+// predictsurv
+arma::vec predictsurv(arma::mat alpha, arma::cube k0);
+RcppExport SEXP _RMKL_predictsurv(SEXP alphaSEXP, SEXP k0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type k0(k0SEXP);
+    rcpp_result_gen = Rcpp::wrap(predictsurv(alpha, k0));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_RMKL_SpicySVM", (DL_FUNC) &_RMKL_SpicySVM, 8},
     {"_RMKL_SpicyLogit", (DL_FUNC) &_RMKL_SpicyLogit, 8},
     {"_RMKL_predictspicy", (DL_FUNC) &_RMKL_predictspicy, 3},
+    {"_RMKL_Coxdual", (DL_FUNC) &_RMKL_Coxdual, 8},
+    {"_RMKL_predictsurv", (DL_FUNC) &_RMKL_predictsurv, 2},
     {NULL, NULL, 0}
 };
 

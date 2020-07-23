@@ -4,8 +4,7 @@
 \alias{SEMKL.classification}
 \title{Simple and Efficient MKL}
 \usage{
-SEMKL.classification(k, outcome, penalty, tol = 1e-04,
-  max.iters = 1000)
+SEMKL.classification(k, outcome, penalty, tol = 1e-04, max.iters = 1000)
 }
 \arguments{
 \item{k}{list of Gramm matrices}

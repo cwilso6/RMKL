@@ -3,9 +3,13 @@ title: "MKL Cox (MKCox)"
 output: pdf_document
 ---
 
-We will be mimicing example 1, two factors with linear relatophsip with the hazard
+We will be mimicking example 1, two factors with linear relationship with the hazard
 function $h(X) = (X_1 + 2*X_2)$, from 'Fenchel duality of Cox partial 
-likelihood and its application in survival kernel learning' Wilson et. al (2020).
+likelihood and its application in survival kernel learning' Wilson et. al (2020). 
+Here is quick example of how to run the code. The concordance for Random survival
+forest, gradient boosting, and MKCox are printed and note that they are compatible. 
+All of the machine learning methods are able to capture the linear relationship
+between the features and hazard function as shown in the scatterplots.
 
 ## Loading data and plotting data
 ```{r}
@@ -20,7 +24,7 @@ head(Surv_data)
 ```
 
 ```{r}
-ggplot(Surv_data, aes(x = x1, y = x2, color = time)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + 
+ggplot(Surv_data, aes(x = x1, y = x2, color = -time)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + 
 labs(color = 'value', title = 'True',x = expression(x[1]), y = expression(x[2])) + theme_bw() + theme(plot.title = element_text(hjust = .5), legend.position = 'right')
 print
 ```
@@ -69,15 +73,37 @@ RSF.con
 ```
 
 #MKCox
-```{R}
+```{r}
+#Getting survival times in ascending order
+ordtr <- order(Surv_data$time)
+Surv_data_ordered = Surv_data[ordtr,]
+
+xx = Surv_data_ordered[,1:2]
+del = Surv_data_ordered$status
+yy = Surv_data_ordered$time
+if (!del[1]) {
+  first1 <- which(del)[1]
+  xx <- xx[-(1:(first1 - 1)), ]
+  yy <- yy[-(1:(first1 - 1))]
+  del <- del[-(1:(first1 - 1))]
+  nn <- dim(Surv_data)[1] - first1 + 1
+} else {
+  nn <- dim(Surv_data)[1]
+}
+
 rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
-klist <- list(kernelMatrix(rbfdot(1), as.matrix(Surv_data[,1:2])),
-	         kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+klist <- list(kernelMatrix(rbfdot(1), as.matrix(xx)),
+	         kernelMatrix(vanilladot(), as.matrix(xx)))
+ktlist <- list(kernelMatrix(rbfdot(1), as.matrix(xx), as.matrix(Surv_data[,1:2])),
+	         kernelMatrix(vanilladot(), as.matrix(xx), as.matrix(Surv_data[,1:2])))
 kk <- simplify2array(klist)
+kkk <- simplify2array(ktlist)
 modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  rho0, C = 0.005, lambda = 0.5, maxiter = 500, cri = .01)
-mkl = predict_Surv(modmkl, kk)
+mkl = predict_Surv(modmkl, kkk)
 Surv_data$MKCox = mkl
 ggplot(Surv_data, aes(x = x1, y = x2, color = MKCox)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'MKCox') + theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), legend.position = 'bottom')
 MKCox.con = survConcordance(Surv(time, status) ~ MKCox, Surv_data)$con
 MKCox.con
 ```
+
+

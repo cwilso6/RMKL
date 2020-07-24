@@ -30,12 +30,35 @@ alpha coeffiencents of the dual of SurvMKL
 This function conducts SurvMKL for precomputed gramm matrices
 }
 \examples{
+\dontrun{
 library(RMKL)
 library(kernlab)
 data(Surv_data)
+#Getting survival times in ascending order
+ordtr <- order(Surv_data$time)
+Surv_data_ordered = Surv_data[ordtr,]
+
+xx = Surv_data_ordered[,1:2]
+del = Surv_data_ordered$status
+yy = Surv_data_ordered$time
+if (!del[1]) {
+  first1 <- which(del)[1]
+  xx <- xx[-(1:(first1 - 1)), ]
+  yy <- yy[-(1:(first1 - 1))]
+  del <- del[-(1:(first1 - 1))]
+  nn <- dim(Surv_data)[1] - first1 + 1
+} else {
+  nn <- dim(Surv_data)[1]
+}
+
 rho0 <- .001*(Surv_data$status - seq(0, 10, length.out = dim(Surv_data)[1]))
-klist <- list(kernelMatrix(rbfdot(2), as.matrix(Surv_data[,1:2])),
-	         kernelMatrix(vanilladot(), as.matrix(Surv_data[,1:2])))
+klist <- list(kernelMatrix(rbfdot(1), as.matrix(xx)),
+              kernelMatrix(vanilladot(), as.matrix(xx)))
+ktlist <- list(kernelMatrix(rbfdot(1), as.matrix(xx), as.matrix(Surv_data[,1:2])),
+               kernelMatrix(vanilladot(), as.matrix(xx), as.matrix(Surv_data[,1:2])))
 kk <- simplify2array(klist)
-modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  rho0, C = .5, lambda = .5, maxiter = 500, cri = .01)
+kkk <- simplify2array(ktlist)
+modmkl <- SurvMKL(y = Surv_data$time, del = Surv_data$status, K = kk, rho =  
+rho0, C = 0.005, lambda = 0.5, maxiter = 500, cri = .01)
+}
 }

@@ -14,9 +14,7 @@
 #' @return alpha coeffiencents of the dual of MKL
 #' @return weight Estimated between kernel weight
 #' @return rho Estimated within kernel weight
-#' @references Suzuki, T. & Tomioka, R. 
-#' \emph{Mach Learn} (2011) 85: 77. 
-#' \href{https://doi.org/10.1007/s10994-011-5252-9}
+#' @references Suzuki, T. & Tomioka, R. Mach Learn (2011) 85: 77. 
 #' @useDynLib RMKL, .registration=TRUE
 #' @importFrom Rcpp evalCpp 
 #' @export
@@ -61,9 +59,7 @@ SpicyMKL <- function(K, y, loss = 'hinge', C = .5, tolOuter = .01, tolInner = .0
 #' @param b intercept
 #' @param k0 the kernel cube needs prediction
 #' @return The predicted score
-#' @references Suzuki, T. & Tomioka, R.
-#' \emph{Mach Learn} (2011) 85: 77.
-#' \href{https://doi.org/10.1007/s10994-011-5252-9}
+#' @references Suzuki, T. & Tomioka, R.Mach Learn (2011) 85: 77.
 #' @useDynLib RMKL
 #' @importFrom Rcpp evalCpp
 #' @export
@@ -81,8 +77,7 @@ SpicyMKL <- function(K, y, loss = 'hinge', C = .5, tolOuter = .01, tolInner = .0
 #' C=0.05 #Cost parameter for DALMKL
 #' K.train=K$K.train
 #' K.test=K$K.test
-
-  # parameters set up
+#'  #parameters set up
 #'  ytr=data.mkl[train.samples,3]
 #'  #Converts list of kernel matrices in to an array with is appropriate for C++ code
 #'  k.train=simplify2array(K.train) 

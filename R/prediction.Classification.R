@@ -8,9 +8,7 @@
 #' @param train.outcome Outcome for the training data
 #' @return yhat Predicted value for each test point
 #' @return predicted Sign of yhat, which is the final predicted outcome 
-#' @references A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet.
-#' \emph{Journal of Machine Learning Research} 9 (Nov), 2491-2521.
-#' \href{http://www.jmlr.org/papers/v9/rakotomamonjy08a.html}
+#' @references A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet. Journal of Machine Learning Research 9 (Nov), 2491-2521.
 #' @export
 #' @examples
 #' library(kernlab)

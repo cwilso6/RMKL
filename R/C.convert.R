@@ -5,9 +5,7 @@
 #' @param DALMKL.model DAL MKL model 
 #' @param C.DALMKL Cost used in DAMKL model
 #' @return C cost SEMKL or SimpleMKL 
-#' @references Suzuki, T. & Tomioka, R.
-#' \emph{Mach Learn} (2011) 85: 77.
-#' \href{https://doi.org/10.1007/s10994-011-5252-9}
+#' @references Suzuki, T. & Tomioka, R. Mach Learn (2011) 85: 77.
 #' @export
 #' @examples
 #' data(benchmark.data)
@@ -35,8 +33,6 @@
 #'  #Convert cost from DALMKL to be more compatible withSimpleMKL
 #'  C.SimpleMKL=C.convert(K.train,spicy_svmb1n,C)
 
-
-
 C.convert=function(K.train,DALMKL.model,C.DALMKL){
 norm=function(x,y){y%*%x%*%y}
 sum.norms=sum(sapply(1:length(K.train), function(a){
@@ -44,4 +40,3 @@ sum.norms=sum(sapply(1:length(K.train), function(a){
             C=C.DALMKL*sum.norms
             return(C)
 }
-

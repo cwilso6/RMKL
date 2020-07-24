@@ -33,6 +33,7 @@ K=kernels.gen(data=data.mkl[,1:2],train.samples=train.samples,
 C=0.05 #Cost parameter for DALMKL
 K.train=K$K.train
 K.test=K$K.test
+ #parameters set up
  ytr=data.mkl[train.samples,3]
  #Converts list of kernel matrices in to an array with is appropriate for C++ code
  k.train=simplify2array(K.train) 
@@ -46,7 +47,5 @@ K.test=K$K.test
  prediction_logistic=predict_Spicy(spicy_logistic$alpha,spicy_logistic$b,k.test)
 }
 \references{
-Suzuki, T. & Tomioka, R.
-\emph{Mach Learn} (2011) 85: 77.
-\href{https://doi.org/10.1007/s10994-011-5252-9}
+Suzuki, T. & Tomioka, R.Mach Learn (2011) 85: 77.
 }

@@ -13,7 +13,7 @@
 #' f which are the fitted values for the training set
 #' @export
 #' @examples 
-#' \donotrun{
+#' \dontrun{
 #' library(kernlab)
 #' x=as.matrix(10*runif(200),ncol=1)
 #' y=x*sin(x)+rnorm(200)

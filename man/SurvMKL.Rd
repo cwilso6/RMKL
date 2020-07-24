@@ -13,6 +13,8 @@ SurvMKL(K, y, del, rho0, C = 0.5, lambda = 0.5, maxiter = 500, cri = 0.01)
 
 \item{del}{Indicator vector of whether an event occured (0 = no event, 1 = event occured)}
 
+\item{rho0}{Argmin Dual objective function}
+
 \item{C}{cost parameter is the loss function}
 
 \item{lambda}{tuning parameter for the elastic net. Lambda closer 1 corresponds to L1 and closer to 0 corresponds to L2 penalties.}
@@ -20,8 +22,6 @@ SurvMKL(K, y, del, rho0, C = 0.5, lambda = 0.5, maxiter = 500, cri = 0.01)
 \item{maxiter}{maximum number of allowed iteratons for outer loop, default to be 500}
 
 \item{cri}{change between to iterations is smaller than this, algorithms is considered to have converged, default to be .001}
-
-\item{InnerMaxiter}{maximum number of allowed iteratons for inner loop, default to be 500}
 }
 \value{
 alpha coeffiencents of the dual of SurvMKL

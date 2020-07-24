@@ -10,9 +10,7 @@
 #' @return alpha coeffiencents of the dual of MKL
 #' @return time total amount of time to train model
 #' @return max.iters Numvber of iterations to reach convergence criteria
-#' @references A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet.
-#' \emph{Journal of Machine Learning Research} 9 (Nov), 2491-2521.
-#' \href{http://www.jmlr.org/papers/v9/rakotomamonjy08a.html}
+#' @references A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet. Journal of Machine Learning Research 9 (Nov), 2491-2521.
 #' @export
 #' @examples
 #' library(kernlab)

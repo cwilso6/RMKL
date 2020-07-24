@@ -27,8 +27,6 @@ time total amount of time to train model
 iters Numvber of iterations to reach convergence criteria
 
 gamma_all Kernel weights for each interation of SEMKL
-\emph{Proceedings of the 27th International Conference on International Conference on Machine Learning} 
-\href{https://cse.msu.edu/~rongjin/publications/icml2010-simple.pdf}
 }
 \description{
 This function conducts Simple and Efficnent MKL for precomputed gramm matrices

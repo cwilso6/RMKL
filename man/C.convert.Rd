@@ -45,7 +45,5 @@ k.test=simplify2array(K.test)
  C.SimpleMKL=C.convert(K.train,spicy_svmb1n,C)
 }
 \references{
-Suzuki, T. & Tomioka, R.
-\emph{Mach Learn} (2011) 85: 77.
-\href{https://doi.org/10.1007/s10994-011-5252-9}
+Suzuki, T. & Tomioka, R. Mach Learn (2011) 85: 77.
 }

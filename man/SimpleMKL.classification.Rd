@@ -49,7 +49,5 @@ K.train=K$K.train
 SimpleMKL.classification(K.train,example.data[training.samples,3], C)
 }
 \references{
-A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet.
-\emph{Journal of Machine Learning Research} 9 (Nov), 2491-2521.
-\href{http://www.jmlr.org/papers/v9/rakotomamonjy08a.html}
+A Rakotomamonjy, FR Bach, S Canu, Y Grandvalet. Journal of Machine Learning Research 9 (Nov), 2491-2521.
 }

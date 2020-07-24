@@ -9,7 +9,7 @@
 #' @return predicted Sign of yhat, which is the final predicted outcome 
 #' @export
 #' @examples 
-#' \donotrun{
+#' \dontrun{
 #' library(kernlab)
 #' x=as.matrix(10*runif(200),ncol=1)
 #' y=x*sin(x)+rnorm(200)
@@ -25,7 +25,7 @@
 #' plot(x[151:200],y[151:200])
 #' points(x[151:200],pred,col='red')
 #' }
-#' @export
+
 
 prediction.Regression=function(model,ktest,outcome){
   product=list()

@@ -5,10 +5,10 @@
 #' @param y Vector of survival times
 #' @param del Indicator vector of whether an event occured (0 = no event, 1 = event occured)
 #' @param C cost parameter is the loss function
+#' @param rho0 Argmin Dual objective function
 #' @param lambda tuning parameter for the elastic net. Lambda closer 1 corresponds to L1 and closer to 0 corresponds to L2 penalties.
 #' @param maxiter maximum number of allowed iteratons for outer loop, default to be 500
 #' @param cri change between to iterations is smaller than this, algorithms is considered to have converged, default to be .001
-#' @param InnerMaxiter maximum number of allowed iteratons for inner loop, default to be 500
 #' @return alpha coeffiencents of the dual of SurvMKL
 #' @useDynLib RMKL, .registration=TRUE
 #' @importFrom Rcpp evalCpp 

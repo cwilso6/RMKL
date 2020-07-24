@@ -22,7 +22,7 @@ predicted Sign of yhat, which is the final predicted outcome
 This makes prediction for multiple kernel regression
 }
 \examples{
-\donotrun{
+\dontrun{
 library(kernlab)
 x=as.matrix(10*runif(200),ncol=1)
 y=x*sin(x)+rnorm(200)

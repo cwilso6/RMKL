@@ -17,4 +17,4 @@ In order for RMKL to work properly, the following packages are required:
 * caret
 * kernlab
 
-
+See MKL_Classification.pdf and MKL_Survival.pdf for illustrative example showing the properties and implementation of MKL for both classification and survival applications.

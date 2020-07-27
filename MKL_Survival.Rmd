@@ -24,9 +24,8 @@ head(Surv_data)
 ```
 
 ```{r}
-ggplot(Surv_data, aes(x = x1, y = x2, color = -time)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + 
+ggplot(Surv_data, aes(x = x1, y = x2, color = f.true)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + 
 labs(color = 'value', title = 'True',x = expression(x[1]), y = expression(x[2])) + theme_bw() + theme(plot.title = element_text(hjust = .5), legend.position = 'right')
-print
 ```
 
 
@@ -70,6 +69,19 @@ Surv_data$RSF = prerf
 ggplot(Surv_data, aes(x = x1, y = x2, color = RSF)) + geom_point() + scale_color_gradient(low = 'blue', high = 'yellow') + labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'RSF') + theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), legend.position = 'bottom')
 RSF.con = survConcordance(Surv(time, status) ~ RSF, Surv_data)$con
 RSF.con
+```
+
+# Run ELM model
+` ``{r}
+modelm <- ELMCox(Surv_data[,1:2], Surv(Surv_data$time, Surv_data$status))
+ypreelm <- predict(modelm, Surv_data[,1:2])
+Surv_data$ELM =  ypreelm
+survConcordance(Surv(time, status) ~ ELM,data = Surv_data)$con
+ggplot(Surv_data, aes(x = x1, y = x2, color = ELM)) + geom_point() + 
+  scale_color_gradient(low = 'blue', high = 'yellow') + 
+  labs(x = expression(x[1]), y = expression(x[2]), color = 'value', title = 'ELM') + 
+  theme_bw() + theme(plot.title = element_text(hjust = .5), axis.title.y = element_text(angle = 0, vjust = .5), 
+                     legend.position = 'bottom')
 ```
 
 #MKCox

@@ -16,7 +16,7 @@ Description: Provides R and C++ function that enable the user to conduct multipl
  Suzuki and Tomioka (2011) <doi:10.1007/s10994-011-5252-9>. These methods identify the convex combination of candidate kernels to construct an optimal hyperplane. We also have added implementation of MKCox developed in Fenchel duality of Cox partial likelihood and its application in survival kernel learning Wilson et. al (2020) <DOI: 10.1101/2020.05.04.077263>.
 License: GPL-3
 Depends: R (>= 3.5.0)
-Imports: Rcpp (>= 1.0.0), caret, kernlab, stats, e1071
+Imports: Rcpp (>= 1.0.0), caret, kernlab, stats
 LinkingTo: Rcpp, RcppArmadillo
 LazyData: true
 LazyLoad: yes

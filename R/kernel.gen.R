@@ -22,7 +22,7 @@
 #' kernels=c('linear',rep('radial',3))
 #' degree=rep(0,4)
 #' scale=rep(0,4)
-#' sigma=c(0,2^seq(-3:0))
+#' sigma=c(0,2^seq(-3:-1))
 #' kernels.gen(example.data[,1:2], training.samples, kernels, degree, scale, sigma)
 
 

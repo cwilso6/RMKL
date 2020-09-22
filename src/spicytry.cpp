@@ -915,9 +915,6 @@ arma::mat Coxdual(arma::vec y0, arma::vec delta0, arma::cube k0, arma::vec rho0,
 		rho = rhonew;
 		st = 1;
 	}
-	if (i == maxiter) {
-		printf("Does not converge!");
-	}
 	for (i = 0; i < m; i++) {
 		if (actset(i)) {
 			rhok = knorm(rho, k.slice(i));
